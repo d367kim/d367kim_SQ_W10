@@ -36,6 +36,18 @@ let currentLevel = 1;
 const MAX_LEVELS = 3;
 let showDebug = false;
 
+// ------------------------------------------------------------
+// NEW FEATURES: Animation, Sound, Lives
+// ------------------------------------------------------------
+let flipProgress = 0;        // 0 = not flipping, 1 = fully flipped
+let isFlipping = false;
+
+let lives = 3;               // player starts with 3 lives
+const MAX_LIVES = 3;
+
+// Sounds
+let sndCorrect, sndWrong, sndFlip;
+
 
 // ------------------------------------------------------------
 // CARD LAYOUT
@@ -89,6 +101,11 @@ function preload() {
   levelData[1] = loadJSON("data/level1.json");
   levelData[2] = loadJSON("data/level2.json");
   levelData[3] = loadJSON("data/level3.json");
+
+  sndCorrect = loadSound("sounds/correct.mp3");
+sndWrong = loadSound("sounds/wrong.mp3");
+sndFlip = loadSound("sounds/flip.mp3");
+
 }
 
 // ============================================================
@@ -109,6 +126,7 @@ function draw() {
     drawStartScreen();
   } else if (gameState === STATE_PLAY) {
     updateResult();
+    updateFlip();
     drawGame();
     drawHUD();
   } else if (gameState === STATE_WIN) {
@@ -126,6 +144,11 @@ function draw() {
 // ------------------------------------------------------------
 function loadLevel(num) {
   currentLevel = num;
+
+if (num === 1) {
+    lives = MAX_LIVES;
+  }
+
   let data = levelData[num];
 
   if (!data || !data.cards) {
@@ -210,6 +233,24 @@ function updateResult() {
   }
 }
 
+function updateFlip() {
+  if (!isFlipping) return;
+
+  flipProgress += 0.1;
+
+  if (flipProgress >= 1) {
+    flipProgress = 0;
+    isFlipping = false;
+
+    // After flip finishes, reveal next card
+    currentCard = nextCard;
+    deckIndex++;
+    nextCard = deck[deckIndex] || null;
+  }
+}
+
+
+
 // ------------------------------------------------------------
 // guess(direction)
 // Called when the player clicks Higher or Lower.
@@ -217,7 +258,10 @@ function updateResult() {
 // Sets result and starts the result timer.
 // ------------------------------------------------------------
 function guess(direction) {
-  if (!nextCard || resultTimer > 0) return;
+  if (!nextCard || resultTimer > 0 || isFlipping) return;
+
+  sndFlip.play();   // play flip sound
+  isFlipping = true;
 
   let correct = false;
 
@@ -226,18 +270,27 @@ function guess(direction) {
   } else if (direction === "lower" && nextCard.value < currentCard.value) {
     correct = true;
   }
-  // Equal cards count as wrong — the player must commit to a direction
 
   if (correct) {
+    sndCorrect.play();
     score++;
     totalScore++;
     result = "correct";
     resultTimer = RESULT_FRAMES;
   } else {
-    result = "wrong";
-    resultTimer = RESULT_FRAMES;
+    sndWrong.play();
+    lives--;
+
+    if (lives <= 0) {
+      result = "wrong";
+      resultTimer = RESULT_FRAMES;
+    } else {
+      result = "wrong";
+      resultTimer = RESULT_FRAMES;
+    }
   }
 }
+
 
 // ============================================================
 // DRAW FUNCTIONS
@@ -255,8 +308,22 @@ function drawGame() {
   // --- Current card (face up) ---
   drawCard(currentCard, cardX, cardY, true);
 
-  // --- Next card (face down) ---
-  drawCard(null, cardX + CARD_W + 20, cardY, false);
+  let flipX = cardX + CARD_W + 20;
+
+// Flip animation: scale X from 1 → 0 → 1
+push();
+translate(flipX + CARD_W / 2, cardY + CARD_H / 2);
+scale(isFlipping ? abs(1 - flipProgress * 2) : 1, 1);
+translate(-(flipX + CARD_W / 2), -(cardY + CARD_H / 2));
+
+if (isFlipping && flipProgress > 0.5) {
+  drawCard(nextCard, flipX, cardY, true);
+} else {
+  drawCard(null, flipX, cardY, false);
+}
+pop();
+
+
 
   // --- Result message ---
   if (result === "correct") {
@@ -399,6 +466,13 @@ function drawHUD() {
 
   fill(80, 200, 120);
   rect(barX, barY, fillW, barH, 4);
+
+  // ⭐ NEW: Lives display
+fill(255, 120, 120);
+textAlign(LEFT);
+textSize(16);
+text("Lives: " + "❤".repeat(lives), 16, 90);
+
 }
 
 // ------------------------------------------------------------
@@ -578,6 +652,10 @@ function drawDebugPanel() {
   text("S = Start Screen", 20, 160);
   text("W = Win Screen", 20, 185);
   text("O = Game Over", 20, 210);
+
+  // ⭐ NEW: Show lives in debug panel
+text("Lives: " + lives, 20, 235);
+
 }
 
 

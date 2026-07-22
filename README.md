@@ -29,8 +29,20 @@ The debug panel displays these shortcuts in game and can be shown or hidden at a
 
 ## Assets
 
-No external assets used. All visuals are generated with p5.js.
+| File | Source |
+|------|--------|
+| `sounds/correct.mp3` | 	[1] DRAGON‑STUDIO — Pixabay
+| `sounds/wrong.mp3` | [2] Nhựt Bùi — Pixabay
+| `sounds/flip.mp3` | [3] freesound_community — Pixabay
+
 
 ## References
 
-N/A
+[1] DRAGON‑STUDIO. Sound Effect. Pixabay. Retrieved July 22, 2026, from
+https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=472358
+
+[2] Nhựt Bùi. Sound Effect. Pixabay. Retrieved July 22, 2026, from
+https://pixabay.com/users/eritnhut1992-25656588/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=20582
+
+[3] freesound_community. Sound Effect. Pixabay. Retrieved July 22, 2026, from
+https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=47177
